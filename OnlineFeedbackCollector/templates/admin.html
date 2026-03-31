@@ -1,0 +1,170 @@
+{% extends "layout.html" %}
+{% block title %}Admin Dashboard — FeedbackHub{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+
+  <!-- Page header -->
+  <div class="dash-header">
+    <div>
+      <p class="hero-eyebrow">Admin Panel</p>
+      <h1 class="dash-title">Feedback Dashboard</h1>
+    </div>
+    <a href="/admin/export-csv" class="btn btn--outline">
+      ↓ Export CSV
+    </a>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="stat-grid">
+    <div class="stat-card stat-card--blue">
+      <span class="stat-icon">📋</span>
+      <div>
+        <p class="stat-label">Total Responses</p>
+        <p class="stat-value">{{ total }}</p>
+      </div>
+    </div>
+    <div class="stat-card stat-card--gold">
+      <span class="stat-icon">⭐</span>
+      <div>
+        <p class="stat-label">Average Rating</p>
+        <p class="stat-value">{{ avg_rating }} <small>/ 5</small></p>
+      </div>
+    </div>
+    <div class="stat-card stat-card--green">
+      <span class="stat-icon">😊</span>
+      <div>
+        <p class="stat-label">Positive (4–5 ★)</p>
+        <p class="stat-value">{{ rating_counts[4] + rating_counts[5] }}</p>
+      </div>
+    </div>
+    <div class="stat-card stat-card--red">
+      <span class="stat-icon">😞</span>
+      <div>
+        <p class="stat-label">Negative (1–2 ★)</p>
+        <p class="stat-value">{{ rating_counts[1] + rating_counts[2] }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Rating Distribution</h3>
+      <canvas id="barChart" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Sentiment Breakdown</h3>
+      <canvas id="pieChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Feedback Table -->
+  <div class="table-card">
+    <div class="table-header">
+      <h3>All Feedback Entries</h3>
+      <input class="table-search" id="tableSearch" type="text" placeholder="Search by name, email…" />
+    </div>
+    {% if entries %}
+    <div class="table-wrapper">
+      <table class="feedback-table" id="feedbackTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Rating</th>
+            <th>Comments</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in entries %}
+          <tr>
+            <td class="td-id">{{ e.id }}</td>
+            <td><strong>{{ e.name }}</strong></td>
+            <td class="td-email">{{ e.email }}</td>
+            <td>
+              <span class="rating-badge rating-badge--{{ e.rating }}">
+                {{ "★" * e.rating }}{{ "☆" * (5 - e.rating) }}
+              </span>
+            </td>
+            <td class="td-comment">{{ e.comments or "—" }}</td>
+            <td class="td-date">{{ e.date_submitted[:10] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>No feedback submitted yet. Share the form link!</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const counts = {{ rating_counts.values() | list | tojson }};
+  const labels = ["1 ★","2 ★","3 ★","4 ★","5 ★"];
+  const accent  = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#c9a84c';
+  const palette = ['#e74c3c','#e67e22','#f1c40f','#2ecc71','#27ae60'];
+
+  // Bar chart
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Responses',
+        data: counts,
+        backgroundColor: palette,
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(255,255,255,.06)' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // Pie chart
+  const pos = counts[3] + counts[4];
+  const neu = counts[2];
+  const neg = counts[0] + counts[1];
+  new Chart(document.getElementById('pieChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Positive (4-5★)', 'Neutral (3★)', 'Negative (1-2★)'],
+      datasets: [{
+        data: [pos, neu, neg],
+        backgroundColor: ['#27ae60','#f1c40f','#e74c3c'],
+        borderWidth: 0,
+        hoverOffset: 12
+      }]
+    },
+    options: {
+      cutout: '65%',
+      plugins: { legend: { position: 'bottom', labels: { padding: 16 } } }
+    }
+  });
+
+  // Table search
+  document.getElementById('tableSearch')?.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('#feedbackTable tbody tr').forEach(tr => {
+      tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+</script>
+{% endblock %}

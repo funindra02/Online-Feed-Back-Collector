@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+{% block title %}Submit Feedback — FeedbackHub{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-text">
+    <p class="hero-eyebrow">Share your thoughts</p>
+    <h1 class="hero-title">Your feedback <em>matters</em></h1>
+    <p class="hero-sub">Help us improve by taking 60 seconds to rate your experience.</p>
+  </div>
+  <div class="hero-deco" aria-hidden="true">
+    <div class="deco-ring deco-ring--lg"></div>
+    <div class="deco-ring deco-ring--md"></div>
+    <div class="deco-ring deco-ring--sm"></div>
+  </div>
+</section>
+
+<div class="form-card-wrapper">
+  <div class="form-card {% if success %}form-card--success{% endif %}" id="feedbackCard">
+
+    {% if success %}
+      <div class="success-state">
+        <div class="success-icon">✓</div>
+        <h2>Thank you!</h2>
+        <p>Your feedback has been recorded. We really appreciate it.</p>
+        <button class="btn btn--primary" onclick="resetForm()">Submit Another</button>
+      </div>
+    {% else %}
+      <h2 class="card-title">Feedback Form</h2>
+
+      {% if errors %}
+        <div class="alert alert--error">
+          <strong>Please fix the following:</strong>
+          <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        </div>
+      {% endif %}
+
+      <form id="feedbackForm" novalidate>
+        <div class="form-row">
+          <div class="field">
+            <label for="name">Full Name <span class="req">*</span></label>
+            <input type="text" id="name" name="name" placeholder="e.g. Priya Sharma"
+              value="{{ form_data.name if form_data else '' }}" autocomplete="name" />
+            <span class="field-error" id="nameError"></span>
+          </div>
+          <div class="field">
+            <label for="email">Email Address <span class="req">*</span></label>
+            <input type="email" id="email" name="email" placeholder="you@example.com"
+              value="{{ form_data.email if form_data else '' }}" autocomplete="email" />
+            <span class="field-error" id="emailError"></span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Rating <span class="req">*</span></label>
+          <div class="star-group" id="starGroup" role="radiogroup" aria-label="Rating">
+            {% for i in range(1,6) %}
+            <label class="star-label" title="{{ i }} star{{ 's' if i > 1 else '' }}">
+              <input type="radio" name="rating" value="{{ i }}" class="star-radio"
+                {% if form_data and form_data.rating == i|string %}checked{% endif %}/>
+              <span class="star">★</span>
+            </label>
+            {% endfor %}
+          </div>
+          <span class="field-error" id="ratingError"></span>
+        </div>
+
+        <div class="field">
+          <label for="comments">Comments</label>
+          <textarea id="comments" name="comments" rows="4"
+            placeholder="Tell us what you think…">{{ form_data.comments if form_data else '' }}</textarea>
+          <span class="char-count" id="charCount">0 / 500</span>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--full" id="submitBtn">
+          <span class="btn-text">Submit Feedback</span>
+          <span class="btn-spinner" hidden>⟳</span>
+        </button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Reset after success
+  function resetForm() {
+    window.location.href = "/";
+  }
+</script>
+{% endblock %}

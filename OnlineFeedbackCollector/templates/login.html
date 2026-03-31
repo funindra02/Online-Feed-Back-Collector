@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block title %}Admin Login — FeedbackHub{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="login-icon">◈</div>
+    <h2 class="login-title">Admin Access</h2>
+    <p class="login-sub">Sign in to view the dashboard</p>
+
+    {% if error %}
+      <div class="alert alert--error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/admin/login" class="login-form">
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="admin" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button type="submit" class="btn btn--primary btn--full">Sign In</button>
+    </form>
+    <p class="login-hint">Default credentials: <code>admin</code> / <code>admin123</code></p>
+  </div>
+</div>
+{% endblock %}
